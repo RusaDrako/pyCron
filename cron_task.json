@@ -1,5 +1,13 @@
 [
   [
+    "10 * * * *",
+    "python test_task.py --test text --test_int 12"
+  ],
+  [
+    "5 * * * *",
+    "python test_task.py --test text"
+  ],
+  [
     "* * * * *",
     "python test_task.py"
   ]
