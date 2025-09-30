@@ -338,7 +338,7 @@ def update_gui():
             next_lbl.config(text=data["next_str"], bg=bg)
             btn_frame.config(bg=bg)
         else:
-            cron_lbl = tk.Label(tasks_frame, text=data["cron"], width=15, anchor="w", font=("Courier", 9), height=1, bg=bg)
+            cron_lbl = tk.Label(tasks_frame, text=data["cron"], width=20, anchor="w", font=("Courier", 9), height=1, bg=bg)
             cron_lbl.grid(row=row, column=0, padx=5, pady=1, sticky="w")
 
             cmd_lbl = tk.Label(tasks_frame, text=data["command"], anchor="w", font=("Courier", 9), fg="blue", height=1, bg=bg)
@@ -351,6 +351,14 @@ def update_gui():
             btn_frame.grid(row=row, column=3, padx=5, pady=1, sticky="e")
 
             # --- Кнопки с иконками ---
+            run_btn = tk.Button(
+                btn_frame, text="▶", width=3, height=1,
+                command=lambda idx=data["index"]: execute_task_by_index(idx),
+                bg="lightblue"
+            )
+            run_btn.pack(side=tk.LEFT, padx=1)
+            Tooltip(run_btn, "Выполнить задачу")
+
             copy_btn = tk.Button(
                 btn_frame, text="➕", width=3, height=1,
                 command=lambda idx=data["index"]: copy_task_by_index(idx),
@@ -360,7 +368,7 @@ def update_gui():
             Tooltip(copy_btn, "Копировать задачу")
 
             delete_btn = tk.Button(
-                btn_frame, text="➖", width=3, height=1,
+                btn_frame, text="✖", width=3, height=1,
                 command=lambda idx=data["index"]: delete_task_by_index(idx),
                 bg="red", fg="white", font=("Arial", 9)
             )
@@ -526,6 +534,13 @@ def delete_task_by_index(index):
     log_message(f"🗑️ Удалена задача: {cron_expr} → {full_command}")
 
 
+def execute_task_by_index(index):
+    if index < 0 or index >= len(TASKS): return
+    _, full_command = TASKS[index]
+    if messagebox.askyesno("Подтвердите запуск", f"Выполнить команду?\n\n{full_command}"):
+        threading.Thread(target=run_script, args=(full_command,), daemon=True).start()
+
+
 def sort_by(key):
     """Сортировка по ключу — изменяет порядок в TASKS только в памяти"""
     global sort_key, sort_reverse
@@ -569,13 +584,13 @@ def reset_sort():
 
 def create_headers():
     """Создать заголовки с сортировкой"""
-    tk.Label(tasks_frame, text="Cron", width=15, anchor="w", font=("Courier", 9, "bold"), bg="lightgray").grid(
+    tk.Label(tasks_frame, text="Cron", width=20, anchor="w", font=("Courier", 9, "bold"), bg="lightgray").grid(
         row=0, column=0, padx=5, pady=1, sticky="w")
     tk.Label(tasks_frame, text="Команда", anchor="w", font=("Courier", 9, "bold"), bg="lightgray").grid(
         row=0, column=1, padx=5, pady=1, sticky="ew")
     tk.Label(tasks_frame, text="Ближайшее выполнение", width=18, anchor="w", font=("Courier", 9, "bold"), bg="lightgray").grid(
         row=0, column=2, padx=5, pady=1, sticky="w")
-    tk.Label(tasks_frame, text="Действия", anchor="e", font=("Courier", 9, "bold"), bg="lightgray").grid(
+    tk.Label(tasks_frame, text="Действия", anchor="e", width=14, font=("Courier", 9, "bold"), bg="lightgray").grid(
         row=0, column=3, padx=5, pady=1, sticky="e")
 
     tasks_frame.grid_slaves(row=0, column=0)[0].bind("<Button-1>", lambda e: sort_by("cron"))
@@ -831,10 +846,14 @@ def main():
 
     bind_shortcuts(command_entry)
 
-    tk.Button(input_frame, text="📁", width=3, command=browse_file).grid(row=1, column=15, padx=2, pady=2, sticky="e")
-    tk.Button(input_frame, text="➕", width=3, command=add_task, bg="lightgreen").grid(row=1, column=16, padx=2, pady=2, sticky="e")
+    open_btn = tk.Button(input_frame, text="📁", width=3, command=browse_file)
+    open_btn.grid(row=1, column=15, padx=2, pady=2, sticky="e")
+    Tooltip(open_btn, "Открыть файл команды")
 
-    # --- Кнопка "Очистить" с иконкой и подсказкой ---
+    save_btn = tk.Button(input_frame, text="➕", width=3, command=add_task, bg="lightgreen")
+    save_btn.grid(row=1, column=16, padx=2, pady=2, sticky="e")
+    Tooltip(save_btn, "Добавить задачу")
+
     clear_btn = tk.Button(
         input_frame,
         text="➖",
